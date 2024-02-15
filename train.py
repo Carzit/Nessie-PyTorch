@@ -1,60 +1,61 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from net import *
+from torch.utils.data import DataLoader
+
+from datasets import NessieDataset
+from nets import NegativeBinomialNet
+from Q_predicts import Q_predict_NegativeBinomial
+from losses import NessieKLDivLoss, NessieHellingerDistance
 
 ## Demo
 
+# 加载数据集
+trainset = NessieDataset('data_train_example.json')
+
 # 定义输入和输出的形状
-n = 8
-m = 3
-
-input_size = n
-output_size = m
-
-# 示例输入和输出数据
-input_data = torch.tensor([1.1,2,3,4,5,6,7,8])
-output_data = torch.tensor([[1,0.5],[2,0.3],[3,0.1],[4,0.1]])
-
+input_size, output_size = trainset.get_shape()
+output_size = 6
 
 # 创建网络实例
-net = NessieNet(input_size, output_size)
+net = NegativeBinomialNet(input_size, output_size)
+
+# 选取拟合分布
+Q_predict = Q_predict_NegativeBinomial
 # 定义损失函数
-loss_fn = NessieKLDivLoss()
+loss_fn = NessieKLDivLoss(Q_predict)
 # 定义优化器
-optimizer = optim.SGD(net.parameters(), lr=0.01)
+optimizer = optim.SGD(net.parameters(), lr=0.001)
+# 定义偏差检验
+inaccuracy_fn = NessieHellingerDistance(Q_predict)
 
+# 设置训练参数
+max_epochs = 20
+batch_size = 10
 
+# 数据生成器
+training_generator = DataLoader(trainset, batch_size=batch_size ,shuffle=True)
 
 # 训练网络
-for epoch in range(100):
-    # 前向传播
-    output = net(input_data)
-    
-    # 计算损失
-    loss = loss_fn(output, output_data)
-    
-    # 反向传播
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+for epoch in range(max_epochs):
+
+    for batch, (X, Y) in enumerate(training_generator):
+
+        # 前向传播
+        output = net(X)
+        # 计算损失
+        loss = loss_fn(output, Y)
+            
+        # 反向传播
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
     
     # 打印训练状态
-    if (epoch+1) % 10 == 0:
-        print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, 100, loss.item()))
-
-print('=====================================')
-
-wpr_result = net(input_data)
-
-q = Q_predict(wpr_result)
-test = q(torch.tensor([3, 1, 2, 6]))
-print('Result:', test)
+    
+    print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, max_epochs, loss.item()))
 
 
-dis = NessieHellingerDistance()
-tt = dis(wpr_result, output_data)
-print("HellingerDistance:", tt)
 
 
 

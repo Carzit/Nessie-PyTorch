@@ -1,6 +1,6 @@
 import json
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 
 class NessieDataset(Dataset):
 
@@ -27,4 +27,10 @@ class NessieDataset(Dataset):
         Y_shape = torch.tensor(self.Ys[0]).shape
 
         return X_shape[0], Y_shape[0]
-    
+
+def split_dataset(dataset:Dataset, lengths:list):
+    total_length = len(dataset)
+    split_lengths = list(map(lambda x:round(x / sum(lengths) * total_length), lengths))
+    split_lengths[0] = total_length - sum(split_lengths[1:])
+    return random_split(dataset, split_lengths)
+ 

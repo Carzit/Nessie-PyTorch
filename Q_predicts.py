@@ -51,7 +51,7 @@ class Q_predict_NegativeBinomial(Q_predict):
             self.NBDistributionList.append(NegativeBinomial(r, p))
             self.wlist.append(w)
 
-class Q_predict_Poisson:
+class Q_predict_Poisson(Q_predict):
     '''
     估计分布
     由神经网络预测的components_size个泊松分布组合而成
@@ -65,7 +65,7 @@ class Q_predict_Poisson:
             self.NBDistributionList.append(Poisson(lamda))
             self.wlist.append(w)
 
-class Q_predict_General:
+class Q_predict_General(Q_predict):
     '''
     估计分布
     传入参数和对应分布

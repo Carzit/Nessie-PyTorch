@@ -28,7 +28,7 @@ def multiLinear(input_size:int, output_size:int, layers:int=1, nodes:list=None)-
  
 class NegativeBinomialNet(nn.Module):
     '''
-    使用负二项分布拟合轨迹的神经网络，输出number of componets组负二项分布参数集
+    使用负二项分布拟合轨迹的神经网络,输出number of componets组负二项分布参数集
     '''
 
     def __init__(self, input_size, output_size, layers:int=1, nodes:list=None):
@@ -62,7 +62,7 @@ class NegativeBinomialNet(nn.Module):
     
 class PoissonNet(nn.Module):
     '''
-    使用泊松分布拟合轨迹的神经网络，输出number of componets组负二项分布参数集
+    使用泊松分布拟合轨迹的神经网络,输出number of componets组负二项分布参数集
     '''
     def __init__(self, input_size, output_size, layers:int=1, nodes:list=None):
         '''

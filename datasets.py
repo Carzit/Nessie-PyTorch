@@ -19,14 +19,14 @@ class NessieDataset(Dataset):
     def __getitem__(self, index):
         X = torch.tensor(self.Xs[index])
         Y = torch.tensor(self.Ys[index])
-
         return X, Y
     
-    def get_shape(self):
-        X_shape = torch.tensor(self.Xs[0]).shape
-        Y_shape = torch.tensor(self.Ys[0]).shape
-
-        return X_shape[0], Y_shape[0]
+    def split_dataset(self, lengths:list):
+        total_length = len(self)
+        split_lengths = list(map(lambda x:round(x / sum(lengths) * total_length), lengths))
+        split_lengths[0] = total_length - sum(split_lengths[1:])
+        return random_split(self, split_lengths)
+    
 
 def split_dataset(dataset:Dataset, lengths:list):
     total_length = len(dataset)

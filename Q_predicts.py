@@ -22,7 +22,7 @@ class Q_predict(nn.Module):
         self.wlist = []
         self.probslist = []
     
-    def __call__(self, X:torch.Tensor):#X shape=[batch_size, copy_size]
+    def forward(self, X:torch.Tensor):#X shape=[batch_size, copy_size]
         X = X.unsqueeze(dim=-1)
         for i in range(self.batch_size):
             probs = (self.wlist[i] * torch.exp(self.NBDistributionList[i].log_prob(X[i]))) 

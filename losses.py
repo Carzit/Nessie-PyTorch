@@ -14,9 +14,12 @@ class NessieLoss(nn.Module):
         self.q_predict = self.Q_predict(model_out)
 
         self.target_copynumber, self.target_probility = target.transpose(0,2).transpose(1,2)#[batch_size, copy_size]
-        if self.need_softmax:
-            self.target_probility = nn.functional.softmax(self.target_probility, dim=1)
+
         self.predict_probility = self.q_predict(self.target_copynumber)#shape=[batch_size, copy_size]
+
+        if self.need_softmax:# softmax the target probility to process some kind of negative values
+            self.target_probility = nn.functional.softmax(self.target_probility, dim=1)
+            self.predict_probility = nn.functional.softmax(self.predict_probility, dim=1)
 
 class NessieKLDivLoss(NessieLoss):
     def __init__(self, Q_predict:Q_predict, need_softmax:bool=True):
@@ -24,9 +27,14 @@ class NessieKLDivLoss(NessieLoss):
 
     def forward(self, model_out:torch.Tensor, target:torch.Tensor):
         super(NessieKLDivLoss, self).forward(model_out, target)
+        '''
         loss = self.target_probility * (torch.log(self.target_probility) - torch.log(self.predict_probility))
         loss = loss.sum(dim=-1)#shape=[batch_size]
-        loss = loss.sum()/self.q_predict.batch_size
+        loss = loss.mean()
+        '''
+        loss = nn.functional.kl_div(self.predict_probility, self.target_probility)
+        #print("loss:", loss)
+
         return loss
 
 class NessieHellingerDistance(NessieLoss):
@@ -38,7 +46,7 @@ class NessieHellingerDistance(NessieLoss):
         loss = torch.square(torch.sqrt(self.target_probility) - torch.sqrt(self.predict_probility))
         loss = torch.div(torch.sqrt(loss.sum(dim=-1)), torch.sqrt(torch.tensor(2.0)))
         loss = loss.sum(dim=-1)#shape=[batch_size]
-        loss = loss.sum()/self.q_predict.batch_size
+        loss = loss.mean()
         return loss
     
 class NessieLossGeneral(NessieLoss):
@@ -49,5 +57,5 @@ class NessieLossGeneral(NessieLoss):
         super(NessieLossGeneral, self).forward(model_out, target)
         loss = loss_func(self.target_probility, self.predict_probility)
         loss = loss.sum(dim=-1)#shape=[batch_size]
-        loss = loss.sum()/self.q_predict.batch_size
+        loss = loss.mean()
         return loss

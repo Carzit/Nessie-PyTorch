@@ -21,6 +21,9 @@ class NessieDataset(Dataset):
         Y = torch.tensor(self.Ys[index])
         return X, Y
     
+    def get_shape(self):
+        return torch.tensor(self.Xs[0]).shape, torch.tensor(self.Ys[0]).shape
+    
     def split_dataset(self, lengths:list):
         total_length = len(self)
         split_lengths = list(map(lambda x:round(x / sum(lengths) * total_length), lengths))

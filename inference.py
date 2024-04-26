@@ -36,12 +36,12 @@ def infer(dataset:Dataset, model:nn.Module, q_predict:nn.Module, device:torch.de
         infer = NessieInfer(q_predict, False)
         Y_predict, Y_true = infer(model_out, Y)
 
-        results.append((X, Y_true[0], Y_predict[0]))
+        results.append((X[0], Y_true[0], Y_predict[0]))
 
     return results
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train Nessie Model")
+    parser = argparse.ArgumentParser(description="Nessie Model Inference")
 
     parser.add_argument("--dataset", type=str, required=True, help="dataset file path")
     parser.add_argument("--model", type=str, required=True, help="model file path")
@@ -50,7 +50,7 @@ def parse_args():
     parser.add_argument("--output_size", type=int, required=True, help="ouput size of modle")
     parser.add_argument("--hidden_size", type=int, nargs="*", default=None, help="hidden size of model")
 
-    parser.add_argument("--save_path", type=str, default="model", help="model_name")
+    parser.add_argument("--save_path", type=str, default="model", help="results to save")
     parser.add_argument("--use_cuda", type=bool, default=torch.cuda.is_available(), help="Whether use CUDA. If CUDA is avaiable, default is True.")
 
     return parser.parse_args()

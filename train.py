@@ -33,7 +33,7 @@ indicates that optimization has stalled.
 def parse_args():
     parser = argparse.ArgumentParser(description="Train Nessie Model")
 
-    parser.add_argument("--dataset", type=str, required=True, help="Dataset `.json` File Path")
+    parser.add_argument("--dataset", type=str, required=True, help="Dataset `.pt` File Path")
     parser.add_argument("--batch_size", type=int, default=1, help="Batch Size of Dataloader")
     parser.add_argument("--shuffle", type=bool, default=True, help="Whether shuffle dataset; Default True")
 

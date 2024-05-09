@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from datasets import NessieDataset, save_datasets, load_datasets
 from nets import NegativeBinomialNet
 from Q_predicts import Q_predict_NegativeBinomial
-from losses_new import NessieKLDivLoss, NessieHellingerDistance
+from losses import NessieKLDivLoss, NessieHellingerDistance
 
 from utils import training_board, save_and_load
 
@@ -67,7 +67,7 @@ def main(data_path, batch_size, shuffle, input_size, output_size, hidden_size, c
     # 选取拟合分布
     Q_predict = Q_predict_NegativeBinomial
     # 定义损失函数
-    loss_fn = NessieKLDivLoss(Q_predict, need_softmax=True)
+    loss_fn = NessieKLDivLoss(Q_predict, need_relu=True)
     # 定义优化器
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     #optimizer = optim.SGD(net.parameters(), lr=learning_rate)

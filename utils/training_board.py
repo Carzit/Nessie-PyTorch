@@ -18,12 +18,19 @@ def train(
         *,
         lr_scheduler:torch.optim.lr_scheduler.LRScheduler=None,
         log_dir:str = r".\log",
+        sample_per_batch:int=0,
+        sample_fn=lambda b, x, y, out, tloss, opt: print(f"Model Out: {out}\nLoss: {tloss}"),
         print_per_epoch:int=1,
         save_per_epoch:int=1,
-        save_path:str=os.curdir,
+        save_dir:str=os.curdir,
         save_name:str="model",
         save_format:str="pt",
         device:torch.device=torch.device('cpu'))->torch.nn.Module:
+    
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
     writer = SummaryWriter(os.path.join(log_dir, "TRAIN"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
     model = model.to(device=device)
@@ -44,6 +51,10 @@ def train(
             optimizer.zero_grad()
             train_loss.backward()
             optimizer.step()
+            
+            if sample_per_batch:
+                if batch % sample_per_batch == 0:
+                    sample_fn(batch, X, Y, output, train_loss, optimizer)
 
         writer.add_scalar("Train Loss", train_loss.item(), epoch)
         
@@ -61,8 +72,9 @@ def train(
                 writer.add_scalars("Train-Val Loss", {"Train Loss": train_loss.item(), "Validation Loss": val_loss.item()}, epoch)
 
         # If learning rate scheduler exisit, update learning rate per epoch.
+        writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
         if lr_scheduler:
-            writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
+            #writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
             lr_scheduler.step()
         
         # Flushes the event file to disk
@@ -71,24 +83,25 @@ def train(
         # Specify print_per_epoch = 0 to unable print training information.
         if print_per_epoch:
             if (epoch+1) % print_per_epoch == 0:
-                print('Epoch [{}/{}], Train Loss: {:.4f}, Validation Loss: {:.4f}'.format(epoch+1, epoches, train_loss.item(), val_loss.item()))
+                print('Epoch [{}/{}], Train Loss: {:.6f}, Validation Loss: {:.6f}'.format(epoch+1, epoches, train_loss.item(), val_loss.item()))
         
         # Specify save_per_epoch = 0 to unable save model. Only the final model will be saved.
         if save_per_epoch:
             if (epoch+1) % save_per_epoch == 0:
                 model_name = f"{save_name}_epoch{epoch}"
-                model_path = os.path.join(save_path, model_name)
+                model_path = os.path.join(save_dir, model_name)
                 print(model_path)
                 save(model, model_path, save_format)
         
         
     writer.close()
     model_name = f"{save_name}_final"
-    model_path = os.path.join(save_path, model_name)
+    model_path = os.path.join(save_dir, model_name)
     save(model, model_path, save_format)
     
     return model
-    
+
+@torch.no_grad
 def test(model:torch.nn.Module, 
         loss_fn:torch.nn.Module, 
         test_generator:DataLoader,
@@ -103,7 +116,7 @@ def test(model:torch.nn.Module,
 
     total_inaccuracy = 0
     total_batch = 0
-    for batch, (X, Y) in enumerate(test_generator):
+    for batch, (X, Y) in enumerate(tqdm(test_generator)):
         X = X.to(device=device)
         Y = Y.to(device=device)
 
@@ -116,4 +129,4 @@ def test(model:torch.nn.Module,
         writer.add_scalar("Criterion per Batch", test_inaccuracy.item(), batch)
         writer.add_scalar("Criterion Average", total_inaccuracy/total_batch, batch)
 
-    print('Test Inaccuracy: {:.4f}'.format(total_inaccuracy/total_batch))
+    print('Test Inaccuracy: {:.6f}'.format(total_inaccuracy/total_batch))

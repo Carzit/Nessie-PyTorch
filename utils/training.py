@@ -15,7 +15,7 @@ def train(epoches:int,
           *,
           print_per_epoch:int=1,
           save_per_epoch:int=1,
-          save_path:str=os.curdir,
+          save_dir:str=os.curdir,
           save_name:str="model",
           merge_val:bool=False,
           merge_epoches:int=None,
@@ -52,7 +52,7 @@ def train(epoches:int,
             print('Epoch [{}/{}], Train Loss: {:.4f}, Validation Loss: {:.4f}'.format(epoch+1, epoches, train_loss.item(), val_loss.item()))
         if (epoch+1) % save_per_epoch == 0:
             model_name = f"{save_name}_epoch{epoch}"
-            model_path = os.path.join(save_path, model_name)
+            model_path = os.path.join(save_dir, model_name)
             print(model_path)
             save_pt(model, model_path)
 
@@ -79,7 +79,7 @@ def train(epoches:int,
                 print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, merge_epoches, train_loss.item()))
 
     model_name = f"{save_name}_final"
-    model_path = os.path.join(save_path, model_name)
+    model_path = os.path.join(save_dir, model_name)
     save_pt(model, model_path)
     
     return model
@@ -117,7 +117,7 @@ def train_pro(
         *,
         print_per_epoch:int=1,
         save_per_epoch:int=1,
-        save_path:str=os.curdir,
+        save_dir:str=os.curdir,
         save_name:str="model",
         device:torch.device=torch.device('cpu'))->torch.nn.Module:
 
@@ -163,12 +163,12 @@ def train_pro(
         if save_per_epoch:
             if (epoch+1) % save_per_epoch == 0:
                 model_name = f"{save_name}_epoch{epoch}"
-                model_path = os.path.join(save_path, model_name)
+                model_path = os.path.join(save_dir, model_name)
                 print(model_path)
                 save_pt(model, model_path)
 
     model_name = f"{save_name}_final"
-    model_path = os.path.join(save_path, model_name)
+    model_path = os.path.join(save_dir, model_name)
     save_pt(model, model_path)
     
     return model

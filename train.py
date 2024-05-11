@@ -54,7 +54,7 @@ def parse_args():
 
 def main(data_path, batch_size, shuffle, input_size, output_size, hidden_size, checkpoint, max_epoches, learning_rate, use_cuda, sample_batch, model_name)->None:
     # 加载数据集
-    print(f"Loading Dataset from {data_path}")
+    print(f"Loading Train and Validation Dataset from {data_path}")
     train_set = load_datasets(data_path)["train_set"]
     val_set = load_datasets(data_path)["val_set"]
     print('Successfully Loaded')
@@ -90,7 +90,7 @@ Hidden Size(Neurons): {hidden_size}
 Output Size(Number of Components): {output_size}
 Initial Learning Rate: {learning_rate}''')
 
-    model = training_board.train(epoches=max_epoches,optimizer=optimizer,model=net,loss_fn=loss_fn,train_generator=train_generator, val_generator=val_generator, sample_per_batch=sample_batch, save_dir=r".\save", save_name=model_name, save_format="pt" ,device=device)
+    model = training_board.train(epoches=max_epoches,optimizer=optimizer,model=net,loss_fn=loss_fn,train_generator=train_generator, val_generator=val_generator, sample_per_batch=sample_batch, save_dir=r"save", save_name=model_name, save_format="pt" ,device=device)
 
 if __name__ == "__main__":
     args = parse_args()
@@ -118,6 +118,8 @@ if __name__ == "__main__":
 # python train.py --dataset "data\data_ssa.pt" --batch_size 1 --shuffle True --input_size 5 --output_size 4 --max_epoches 20 --learning_rate 0.001 --use_cuda True --model_name Model4_5-4-adam --sample_batch 5000 
 
 # python train.py --dataset "data\data_ssa.pt" --batch_size 1 --shuffle True --input_size 5 --output_size 4 --max_epoches 20 --learning_rate 0.0005 --use_cuda True --model_name Model5_5-4-adam --sample_batch 5000 --checkpoint save\Model4_5-4-adam_epoch9.pt
+
+# python train.py --dataset "data\data_ssa.pt" --batch_size 1 --shuffle True --input_size 5 --output_size 4 --hidden_size 128 --max_epoches 20 --learning_rate 0.0005 --use_cuda True --model_name Model8_5-128-4-adam-reluloss --sample_batch 5000
 
 
 

@@ -42,7 +42,7 @@ def main(results_path:str, index:list, save_dir:str):
     if index is None:
         index = list(range(len(torch.load(results))))
     if save_dir is None:
-        save_dir = f"infer\\{results}"
+        save_dir = os.path.join("infer",os.path.splitext(os.path.basename(results_path))[0])
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 

@@ -15,8 +15,8 @@ from utils.save_and_load import save, load
 
 
 class NessieInfer(NessieLoss):
-    def __init__(self, Q_predict:Q_predict, need_softmax:bool=True):
-        super(NessieInfer, self).__init__(Q_predict, need_softmax)
+    def __init__(self, Q_predict:Q_predict, need_relu=False, need_softmax:bool=True):
+        super(NessieInfer, self).__init__(Q_predict, need_relu, need_softmax)
 
     def forward(self, model_out:torch.Tensor, target:torch.Tensor):
         super(NessieInfer, self).forward(model_out, target)
@@ -33,7 +33,7 @@ def infer(dataset:Dataset, model:nn.Module, q_predict:nn.Module, device:torch.de
         X = X.to(device=device)
         Y = Y.to(device=device)     
         model_out = model(X)
-        infer = NessieInfer(q_predict, False)
+        infer = NessieInfer(q_predict, True, False)
         Y_predict, Y_true = infer(model_out, Y)
 
         results.append((X[0], Y_true[0], Y_predict[0]))

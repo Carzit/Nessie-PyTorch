@@ -17,7 +17,7 @@ def train(
         val_generator:DataLoader,
         *,
         lr_scheduler:torch.optim.lr_scheduler.LRScheduler=None,
-        log_dir:str = r".\log",
+        log_dir:str = r"log",
         sample_per_batch:int=0,
         sample_fn=lambda b, x, y, out, tloss, opt: print(f"Model Out: {out}\nLoss: {tloss}"),
         print_per_epoch:int=1,
@@ -106,7 +106,7 @@ def test(model:torch.nn.Module,
         loss_fn:torch.nn.Module, 
         test_generator:DataLoader,
         *,
-        log_dir:str = r".\log",
+        log_dir:str = "log",
         device:torch.device=torch.device('cpu'))->None:
     
     writer = SummaryWriter(os.path.join(log_dir, "TEST"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))

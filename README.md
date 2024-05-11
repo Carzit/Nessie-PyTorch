@@ -1,6 +1,6 @@
 # Nessie-PyTorch
 
-[![Open Demo](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github.com/Carzit/Nessie-PyTorch/blob/main/colab_demo.ipynb)
+[![Open Demo](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Carzit/Nessie-PyTorch/blob/main/colab_demo.ipynb)
 
 PyTorch Implementation for Neural Estimation of Stochastic Simulations for Inference and Exploration  
 

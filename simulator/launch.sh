@@ -1,0 +1,1 @@
+~/programfiles/julia/julia-1.6.7/bin/julia -t 50 dssa_copy.jl

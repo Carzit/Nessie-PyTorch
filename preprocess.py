@@ -5,13 +5,14 @@ from torch.utils.data import DataLoader
 
 from datasets import NessieDataset, save_datasets, load_datasets
 from utils.data_utils import *
+from utils.parser_utils import str2bool
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Preprocessor. Load JSON file(s), do components split(in marginal distributions case), do train-val-test split and save datasets as .pt file(s).")
     parser.add_argument("--data", type=str, required=True, nargs="+", help="Dataset `.json` File Path. Can pass one or more JSON file paths or pass filefolder path which contains all JSON fils")
     parser.add_argument("--save", type=str, required=True, help="Dataset `.pt` File path")
     parser.add_argument("--rate", type=int, nargs=3, default=[0.7, 0.2, 0.1], help="Train-Val-Test Split Rate")
-    parser.add_argument("--split", type=bool, default=False, help="Split a Multi Component Dataset to Single Component Datasets")
+    parser.add_argument("--split", type=str2bool, default=False, help="Split a Multi Component Dataset to Single Component Datasets")
 
     return parser.parse_args()
 
@@ -26,7 +27,6 @@ def save_merged_data(json_files:list, save_path:str)->str:
 
 
 def main(data_path, save_path, rate, split):
-    print(data_path)
     if len(data_path) == 1:
         data_path = data_path[0]       
         path_flag = check_path(path=data_path, extension=".json")

@@ -108,7 +108,7 @@ class Q_predict_MultivariateNormal2D(Q_predict_Multivariate):
     '''
     估计分布
     由神经网络预测的components_size个二元正态分布组合而成
-    __init__输入形状:[batch_size, components_size, 6]
+    __init__输入形状:[batch_size, components_size, 6], 最后1维上的顺序为权重w, x1均值, x2均值, x1方差, x2方差, x1和x2的协方差
     __call__输入形状:[batch_size, copy_size], 其中 copy_size=copy_size_per_variate^variate_size
     '''
 

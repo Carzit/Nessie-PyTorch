@@ -11,24 +11,8 @@ from Q_predicts import Q_predict_NegativeBinomial
 from losses import NessieKLDivLoss, NessieHellingerDistance
 
 from utils import training_board, save_and_load
+from modelsinfo import nessie_models
 
-## Demo
-
-'''
-We use a training set of size 1k, a validation set of size 100 and a test set of size 500, sampled using a Sobol
-sequence in the parameter region indicated in Table S1. For each datapoint, we take four snapshots at
-times t = {5;10;25;100} and construct the corresponding histograms using the FSP. 
-
-Our neural network consists of a single hidden layer with 128 neurons and outputs 4 negative binomial mixture components; 
-we use a batch size of 64 for training. 
-
-Learning Rate:we usually initialize lr=0.01 and decrease it astraining progress. 
-Namely, we periodically monitor the loss function over the validation dataset and halve lr
-if the loss has improved by less than 0.5% over the last 25 epochs on average. 
-
-Stopping Criterion: The training procedure is terminated after lr has been decreased 5 times, which usually
-indicates that optimization has stalled. 
-'''
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train Nessie Model")
@@ -37,6 +21,7 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=1, help="Batch Size of Dataloader")
     parser.add_argument("--shuffle", type=bool, default=True, help="Whether shuffle dataset; Default True")
 
+    parser.add_argument("--distribution", type=str, default="NegativeBinomial", help="Choose distribution type for net and q_predict. Default NegativeBinomial.")
     parser.add_argument("--input_size", type=int, required=True, help="Input Size of Model")
     parser.add_argument("--output_size", type=int, required=True, help="Ouput Size of Model")
     parser.add_argument("--hidden_size", type=int, nargs="*", default=None, help="Hidden Size of Model. Specify none or one or more numbers.")
@@ -44,7 +29,7 @@ def parse_args():
 
     parser.add_argument("--max_epoches", type=int, required=True, help="Max Train Epoches")
     parser.add_argument("--learning_rate", type=float, default=0.001, help="Initial Learning Rate")
-    parser.add_argument("--use_cuda", type=bool, default=torch.cuda.is_available(), help="Whether use CUDA. If CUDA is avaiable, default is True.")
+    parser.add_argument("--use_cuda", type=bool, default=torch.cuda.is_available(), help="Whether use CUDA. If CUDA is avaiable, default True.")
 
     parser.add_argument("--sample_batch", type=int, default=0, help="Sample Every n Batch. Print Model Out and Batch Loss")
 
@@ -52,21 +37,24 @@ def parse_args():
 
     return parser.parse_args()
 
-def main(data_path, batch_size, shuffle, input_size, output_size, hidden_size, checkpoint, max_epoches, learning_rate, use_cuda, sample_batch, model_name)->None:
+def main(data_path, batch_size, shuffle, distribution, input_size, output_size, hidden_size, checkpoint, max_epoches, learning_rate, use_cuda, sample_batch, model_name)->None:
     # 加载数据集
     print(f"Loading Train and Validation Dataset from {data_path}")
     train_set = load_datasets(data_path)["train_set"]
     val_set = load_datasets(data_path)["val_set"]
     print('Successfully Loaded')
 
+    # 选取拟合分布
+    model_info = nessie_models[distribution]
+
     # 创建网络实例
-    net = NegativeBinomialNet(input_size=input_size, output_size=output_size, nodes=hidden_size if hidden_size is None else list(hidden_size))
+    Net = model_info.net_class
+    net = Net(input_size=input_size, output_size=output_size, nodes=hidden_size if hidden_size is None else list(hidden_size))
     if not checkpoint is None:
         save_and_load.load(net, checkpoint, "pt")
 
-    # 选取拟合分布
-    Q_predict = Q_predict_NegativeBinomial
     # 定义损失函数
+    Q_predict = model_info.q_class
     loss_fn = NessieKLDivLoss(Q_predict, need_relu=True)
     # 定义优化器
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
@@ -79,24 +67,41 @@ def main(data_path, batch_size, shuffle, input_size, output_size, hidden_size, c
     # 设备
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
+    hparams = {
+        "Data Path": data_path,
+        "Train Data Length": len(train_set),
+        "Val Data Length": len(val_set),
+        "Model Name": model_name,
+        "Checkpoint": checkpoint,
+        "Max Epoch": max_epoches,
+        "Batch Size": batch_size,
+        "Distribution": distribution,
+        "Input Size": input_size,
+        "Hidden Size": str(hidden_size),
+        "Output Size": output_size,
+        "Initial Learning Rate": learning_rate,
+        "Device": str(device)
+    }
     # 训练网络
     print(f'''Configs:
 Train Data Length: {len(train_set)}
 Val Data Length: {len(val_set)}
 Max Epoch: {max_epoches}
 Batch Size: {batch_size}
+Distribution: {distribution}
 Input Size: {input_size}
-Hidden Size(Neurons): {hidden_size}
-Output Size(Number of Components): {output_size}
+Hidden Size: {hidden_size}
+Output Size: {output_size}
 Initial Learning Rate: {learning_rate}''')
 
-    model = training_board.train(epoches=max_epoches,optimizer=optimizer,model=net,loss_fn=loss_fn,train_generator=train_generator, val_generator=val_generator, sample_per_batch=sample_batch, save_dir=r"save", save_name=model_name, save_format="pt" ,device=device)
+    model = training_board.train(hparams=hparams, epoches=max_epoches,optimizer=optimizer,model=net,loss_fn=loss_fn,train_generator=train_generator, val_generator=val_generator, sample_per_batch=sample_batch, save_dir=r"save", save_name=model_name, save_format="pt" ,device=device)
 
 if __name__ == "__main__":
     args = parse_args()
     main(data_path=args.dataset, 
          batch_size=args.batch_size, 
          shuffle=args.shuffle, 
+         distribution=args.distribution, 
          input_size=args.input_size, 
          output_size=args.output_size, 
          hidden_size=args.hidden_size, 

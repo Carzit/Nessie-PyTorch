@@ -17,6 +17,7 @@ def train(
         val_generator:DataLoader,
         *,
         lr_scheduler:torch.optim.lr_scheduler.LRScheduler=None,
+        hparams:dict=None,
         log_dir:str = r"log",
         sample_per_batch:int=0,
         sample_fn=lambda b, x, y, out, tloss, opt: print(f"Model Out: {out}\nLoss: {tloss}"),
@@ -34,11 +35,11 @@ def train(
 
     writer = SummaryWriter(os.path.join(log_dir, "TRAIN"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
     model = model.to(device=device)
-    
 
+    # Train
     for epoch in range(epoches):
         
-        # Train
+        # Train one Epoch
         model.train()
         for batch, (X, Y) in enumerate(tqdm(train_generator)):
 
@@ -56,12 +57,17 @@ def train(
                 if batch % sample_per_batch == 0:
                     sample_fn(batch, X, Y, output, train_loss, optimizer)
 
+        # Record Train Loss Scalar
         writer.add_scalar("Train Loss", train_loss.item(), epoch)
+
+        # If hyper parameters passed, record it in hparams(no val).
+        if hparams and not val_generator:
+            writer.add_hparams(hparam_dict=hparams, metric_dict={"hparam/TrainLoss":train_loss.item()})
         
         # If validation datasets exisit, calculate val loss without recording grad.
         if val_generator:
-            model.eval()
-            with torch.no_grad():
+            model.eval() # set eval mode to frozen layers like dropout
+            with torch.no_grad(): 
                 for batch, (X, Y) in enumerate(val_generator):
                     X = X.to(device=device)
                     Y = Y.to(device=device)
@@ -71,10 +77,13 @@ def train(
                 writer.add_scalar("Validation Loss", val_loss.item(), epoch)
                 writer.add_scalars("Train-Val Loss", {"Train Loss": train_loss.item(), "Validation Loss": val_loss.item()}, epoch)
 
+        # If hyper parameters passed, record it in hparams.
+        if hparams and val_generator:
+            writer.add_hparams(hparam_dict=hparams, metric_dict={"hparam/TrainLoss":train_loss.item(), "hparam/ValLoss":val_loss.item()})
+
         # If learning rate scheduler exisit, update learning rate per epoch.
         writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
         if lr_scheduler:
-            #writer.add_scalar("Learning Rate", optimizer.param_groups[0]["lr"], epoch)
             lr_scheduler.step()
         
         # Flushes the event file to disk

@@ -12,6 +12,7 @@ from Q_predicts import Q_predict, Q_predict_NegativeBinomial
 from losses import NessieLoss
 
 from utils.save_and_load import save, load
+from modelsinfo import nessie_models
 
 
 class NessieInfer(NessieLoss):
@@ -46,6 +47,7 @@ def parse_args():
     parser.add_argument("--dataset", type=str, required=True, help="dataset file path")
     parser.add_argument("--model", type=str, required=True, help="model file path")
 
+    parser.add_argument("--distribution", type=str, default="NegativeBinomial", help="Choose distribution type for net and q_predict. Default NegativeBinomial.")
     parser.add_argument("--input_size", type=int, required=True, help="input size of model")
     parser.add_argument("--output_size", type=int, required=True, help="ouput size of modle")
     parser.add_argument("--hidden_size", type=int, nargs="*", default=None, help="hidden size of model")
@@ -56,22 +58,27 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(data_path, model_path, input_size, output_size, hidden_size, save_path, use_cuda)->None:
+def main(data_path, model_path, distribution, input_size, output_size, hidden_size, save_path, use_cuda)->None:
     print('Loading Dataset...')
     test_set = load_datasets(data_path)["test_set"]
     print('Successfully loaded!')
 
-    model = NegativeBinomialNet(input_size=input_size, output_size=output_size, nodes=hidden_size)
-    load(model=model, path=model_path)
+    # 选取拟合分布
+    model_info = nessie_models[distribution]
+
+    # 创建网络实例
+    Net = model_info.net_class
+    net = Net(input_size=input_size, output_size=output_size, nodes=hidden_size if hidden_size is None else list(hidden_size))
+    load(model=net, path=model_path)
 
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
-    results = infer(test_set, model, Q_predict_NegativeBinomial, device)
+    results = infer(test_set, net, model_info.q_class, device)
 
     torch.save(results, save_path)
 
 if __name__ == "__main__":
     args = parse_args()
-    main(data_path=args.dataset, model_path=args.model, input_size=args.input_size, output_size=args.output_size, hidden_size=args.hidden_size, save_path=args.save_path, use_cuda=args.use_cuda)
+    main(data_path=args.dataset, model_path=args.model, distribution=args.distribution, input_size=args.input_size, output_size=args.output_size, hidden_size=args.hidden_size, save_path=args.save_path, use_cuda=args.use_cuda)
 
 # python inference.py --dataset "data\data_ssa.pt" --model "save\model_final" --input_size 5 --output_size 4 --save_path "infer\out1_nohiddenlayer.pt" --use_cuda True
 

@@ -3,6 +3,11 @@ import json
 from pathlib import Path
 from typing import Union, List
 
+def get_filename(path:str):
+    file_name = os.path.basename(path)
+    file_name = file_name.split('.')[0]
+    return file_name
+
 def get_extensions(extension:Union[str, List[str]]=None):
     if isinstance(extension, str):
         return [extension] if extension.startswith('.') else "."+extension

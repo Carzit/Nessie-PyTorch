@@ -71,7 +71,7 @@ def main(data_path, model_path, distribution, input_size, output_size, hidden_si
     # 创建网络实例
     Net = model_info.net_class
     net = Net(input_size=input_size, output_size=output_size, nodes=hidden_size if hidden_size is None else list(hidden_size))
-    load(model=net, path=model_path)
+    load(model=net, path=model_path, device=device)
 
     
     results = infer(test_set, net, model_info.q_class, device)

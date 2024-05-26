@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument("--results", type=str, required=True, help="Results file (.pt) path")
     parser.add_argument("--index", type=int, nargs="+", default=None, help="Index or Index List. Default all.")
     parser.add_argument("--save_dir", type=str, default=None, help="File Folder to Save Plots")
-    parser.add_argument("--mean_var", type=str2bool, default=True, help="Whether plot Mean-Var Match Plot")
+    parser.add_argument("--mvplot", type=str2bool, default=True, help="Whether plot Mean-Var Match Plot")
 
     return parser.parse_args()
 
@@ -33,14 +33,18 @@ def main(results_path:str, index:list, save_dir:str, mvplot:bool):
         save_dir = os.path.join("infer", get_filename(results_path))
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
+    print("Generating sampled distribution plots...")
     for i in tqdm(index):
         sample_distribution_plot(results, i, save_dir)
         
     if mvplot:
+        print("Computing Mean and Var...")
         mean_var_plot(results=results, save_dir=save_dir)
+        print("Finish Plotting.")
 
 if __name__ == "__main__":
     args = parse_args()
-    main(results_path=args.results, index=args.index, save_dir=args.save_dir, mvplot=args.mean_var)
+    main(results_path=args.results, index=args.index, save_dir=args.save_dir, mvplot=args.mvplot)
 
 # python plot.py --results "infer\out1_nohiddenlayer.pt" --index 1 2
+# python visualization.py --results infer\out6_Model8_epoch20.pt --index 10 11 12 13 14 15 16 17 -11 -12 -13 --mvplot True

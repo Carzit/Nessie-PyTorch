@@ -110,7 +110,7 @@ def train(
     
     return model
 
-@torch.no_grad
+@torch.no_grad()
 def test(model:torch.nn.Module, 
         loss_fn:torch.nn.Module, 
         test_generator:DataLoader,

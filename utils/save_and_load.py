@@ -12,11 +12,11 @@ def save(model:torch.nn.Module, path:str, format:str='pt')->None:
         raise ValueError('''`format` only support `pt` or `safetensors`
                          unavailable format passed''')
 
-def load(model:torch.nn.Module, path:str, format:str='pt')->None:
+def load(model:torch.nn.Module, path:str, format:str='pt', device:torch.device=None)->None:
     if format == 'pt':
-        load_pt(model=model, path=path)
+        load_pt(model=model, path=path, device=device)
     elif format == 'safetensors':
-        load_safetensors(model=model, path=path)
+        load_safetensors(model=model, path=path, device=device)
     else:
         raise ValueError('''`format` only support `pt` or `safetensors`
                          unavailable format passed''')
@@ -27,10 +27,10 @@ def save_pt(model:torch.nn.Module, path:str)->None:
         path += '.pt'
     torch.save(model.state_dict(), path)
 
-def load_pt(model:torch.nn.Module, path:str)->None:
+def load_pt(model:torch.nn.Module, path:str, device:torch.device=None)->None:
     if not path.endswith('.pt'):
         path += '.pt'
-    model.load_state_dict(torch.load(path))
+    model.load_state_dict(torch.load(path, map_location=device))
 
 
 def save_safetensors(model:torch.nn.Module, path:str)->None:
@@ -38,7 +38,7 @@ def save_safetensors(model:torch.nn.Module, path:str)->None:
         path += '.safetensors'
     save_file(model.state_dict(), path)
 
-def load_safetensors(model:torch.nn.Module, path:str)->None:
+def load_safetensors(model:torch.nn.Module, path:str, device:torch.device=None)->None:
     if not path.endswith('.safetensors'):
         path += '.safetensors'
-    model.load_state_dict(load_file(path))
+    model.load_state_dict(load_file(path, device=device))

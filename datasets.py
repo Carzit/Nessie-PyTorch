@@ -61,12 +61,12 @@ def save_datasets(data_path:str, save_path:str, save_format:str=".pt", split:lis
         
     return dataset.info(), save_path
 
-def load_datasets(file_path:str)->dict:
+def load_datasets(file_path:str, device:torch.device=None)->dict:
     if file_path.endswith(".pt"):
-        save_sets = torch.load(file_path)
+        save_sets = torch.load(file_path, map_location=device)
         
     if file_path.endswith(".safetensors"):
-        save_sets = load_file(file_path)
+        save_sets = load_file(file_path, device=device)
 
     return save_sets 
  

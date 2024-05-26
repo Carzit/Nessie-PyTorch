@@ -59,8 +59,10 @@ def parse_args():
 
 
 def main(data_path, model_path, distribution, input_size, output_size, hidden_size, save_path, use_cuda)->None:
+    device = torch.device("cuda") if use_cuda else torch.device("cpu")
+    
     print('Loading Dataset...')
-    test_set = load_datasets(data_path)["test_set"]
+    test_set = load_datasets(data_path, device=device)["test_set"]
     print('Successfully loaded!')
 
     # 选取拟合分布
@@ -71,7 +73,7 @@ def main(data_path, model_path, distribution, input_size, output_size, hidden_si
     net = Net(input_size=input_size, output_size=output_size, nodes=hidden_size if hidden_size is None else list(hidden_size))
     load(model=net, path=model_path)
 
-    device = torch.device("cuda") if use_cuda else torch.device("cpu")
+    
     results = infer(test_set, net, model_info.q_class, device)
 
     torch.save(results, save_path)

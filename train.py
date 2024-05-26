@@ -38,10 +38,13 @@ def parse_args():
     return parser.parse_args()
 
 def main(data_path, batch_size, shuffle, distribution, input_size, output_size, hidden_size, checkpoint, max_epoches, learning_rate, use_cuda, sample_batch, model_name)->None:
+    # 设备
+    device = torch.device("cuda") if use_cuda else torch.device("cpu")
+
     # 加载数据集
     print(f"Loading Train and Validation Dataset from {data_path}")
-    train_set = load_datasets(data_path)["train_set"]
-    val_set = load_datasets(data_path)["val_set"]
+    train_set = load_datasets(data_path, device=device)["train_set"]
+    val_set = load_datasets(data_path, device=device)["val_set"]
     print('Successfully Loaded')
 
     # 选取拟合分布
@@ -51,7 +54,7 @@ def main(data_path, batch_size, shuffle, distribution, input_size, output_size, 
     Net = model_info.net_class
     net = Net(input_size=input_size, output_size=output_size, nodes=hidden_size if hidden_size is None else list(hidden_size))
     if not checkpoint is None:
-        save_and_load.load(net, checkpoint, "pt")
+        save_and_load.load(net, checkpoint, "pt", device=device)
 
     # 定义损失函数
     Q_predict = model_info.q_class
@@ -64,8 +67,7 @@ def main(data_path, batch_size, shuffle, distribution, input_size, output_size, 
     train_generator = DataLoader(train_set, batch_size=batch_size ,shuffle=shuffle)
     val_generator = DataLoader(val_set, batch_size=batch_size ,shuffle=shuffle)
 
-    # 设备
-    device = torch.device("cuda") if use_cuda else torch.device("cpu")
+
 
     hparams = {
         "Data Path": data_path,
@@ -88,7 +90,7 @@ Train Data Length: {len(train_set)}
 Val Data Length: {len(val_set)}
 Max Epoch: {max_epoches}
 Batch Size: {batch_size}
-Distribution: {distribution}
+Distribution: {model_info.name}
 Input Size: {input_size}
 Hidden Size: {hidden_size}
 Output Size: {output_size}

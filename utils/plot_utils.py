@@ -38,7 +38,7 @@ def mean_var_plot(results:List[Tuple[torch.Tensor]], save_dir:str, name:str="Mea
     Y_predict_means = []
     Y_predict_vars = []
 
-    for index in range(len(results)):
+    for index in tqdm(range(len(results))):
         _, Y_true, Y_predict = results[index]
         
         Y_true_mean, Y_true_var = compute_mean_and_variance(Y_true)
